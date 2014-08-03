@@ -1,0 +1,21 @@
+# The loopback network interface
+auto lo
+iface lo inet loopback
+
+auto {{ data_intf }}
+iface {{ data_intf }} inet static
+address 0.0.0.0
+
+auto {{ mgmt_intf }}
+iface {{ mgmt_intf }} inet static
+address 0.0.0.0
+
+#ensure internal port br-mgmt is created
+auto mgmt0
+iface mgmt0 inet static
+address {{ mgmt_ip }}
+network {{ mgmt_network }}
+netmask {{ mgmt_mask }}
+broadcast {{ mgmt_broadcast }}
+gateway {{ mgmt_gw }}
+dns-nameservers {{ dns }}

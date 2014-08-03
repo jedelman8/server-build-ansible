@@ -1,0 +1,66 @@
+[local]
+127.0.0.1
+
+
+[routers]
+10.1.1.110 ospf_interface=gig0/0
+10.1.1.120 ospf_interface=gig0/0
+
+[r1]
+10.1.1.110
+
+[r2]
+10.1.1.120
+
+[r3]
+10.1.1.130
+
+[s1]
+192.168.1.51 mgmt_intf=eth2 data_intf=eth1
+
+[s2]
+192.168.1.52 mgmt_intf=eth2 data_intf=eth3
+
+[s3]
+192.168.1.53 mgmt_intf=eth2 data_intf=eth3 
+
+[controller]
+192.168.1.61 mgmt_intf=eth0 data_intf=eth1 tun=no node=controller
+
+[compute1]
+192.168.1.81 mgmt_intf=eth0 data_intf=eth1 tun=yes node=compute
+
+[compute2]
+192.168.1.82 mgmt_intf=eth0 data_intf=eth1 tun=yes node=compute
+
+[networknode]
+192.168.1.68 mgmt_intf=eth0 data_intf=eth1 tun=yes node=networknode
+
+[openstack_nodes:children]
+controller 
+compute1
+compute2
+networknode
+
+[compute_nodes:children]
+compute1
+compute2
+
+[servers:children]
+s1
+s2
+s3
+
+[all:vars]
+
+dns="198.6.1.4 192.168.1.1"
+
+mgmt_mask=255.255.255.0
+mgmt_gw=192.168.1.1
+mgmt_network=192.168.1.0
+mgmt_broadcast=192.168.1.255
+
+data_mask=255.255.255.0
+data_gw=10.1.20.1
+data_network=10.1.20.0
+data_broadcast=10.1.20.255
