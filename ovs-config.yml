@@ -1,0 +1,70 @@
+---
+
+- name: config for libvirt, ovs, and kvm domains
+  hosts: compute_nodes
+  gather_facts: yes
+  remote_user: root
+
+  tasks:
+
+  # define and create network files
+  # copy over xml for domain
+  # start domain
+  - name: remove ebtables 
+    apt: name=ebtables state=absent
+
+  - name: enable bridge compatibility mode
+    lineinfile: dest=/etc/default/openvswitch-switch 
+      regexp="BRCOMPAT="
+      state=present
+      line="BRCOMPAT=yes"
+
+  - name: remove default interface virbr0 if it exists
+    command: "{{ item[0] }}"
+    when: item[1] == intf
+    with_nested:
+      - ['virsh net-destroy default','virsh net-autostart --disable default']  # check to see if there is a more ansible way to do this
+      - ansible_interfaces
+
+
+  - name: create and copy over new /etc/network/interfaces file
+    template: src=/home/cisco/apps/a4n/templates/host-interfaces-nested.j2 dest=/etc/network/interfaces
+
+  - name: create br-mgmt
+    openvswitch_bridge: bridge=br-mgmt state=present
+
+  - name: create br-data
+    openvswitch_bridge: bridge=br-data state=present
+
+#  - name: creating mgmt0 internal port to br-mgmt
+#    command: ovs-vsctl add-port br-mgmt mgmt0 -- set Interface mgmt0 type=internal
+
+#  - name: add mgmt0 interface to br-mgmt
+#    openvswitch_port: bridge=br-mgmt port=mgmt0 state=present
+
+#  - name: add trunk / data interface to br-data
+#    openvswitch_port: bridge=br-data port={{ data_intf }} state=present
+
+#  - name: put ip on mgmt0 
+#    command: ifconfig mgmt0 {{ mgmt_ip }} netmask 255.255.255.0
+
+#  - name: add mgmt interface to br-mgmt
+#    openvswitch_port: bridge=br-mgmt port={{ mgmt_intf }} state=present
+    ###### WILL LOSE CONNECTIVITY IF INLINE
+    ###### likely need a reboot after this or restart networking services although the restart doesn't work for me
+
+#  - name: tag mgmt0 port
+#    command: ovs-vsctl set port mgmt0 tag=192
+
+#  - name: mgmt physical port to support untagged vlans to domains
+#    command: ovs-vsctl set port {{ mgmt_intf}} vlan_mode=native-untagged
+
+  #- name: restart networking
+  #  service: name=networking state=restarted
+
+  # recommend reboot
+  #- name: reboot
+  #  command: reboot 0
+######
+# DON'T FORGET TO CONFIGURE TRUNK ON PHYSICAL SWITCH PORT (automate that too!)
+######

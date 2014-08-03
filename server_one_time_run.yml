@@ -1,0 +1,35 @@
+---
+
+# this playbook gets run once and only once for each new server.
+# it assumes the server has one user account with root privilges
+
+# only changes made to server: (1) gave static ip address (2) install openssh-server 
+# if getting ssh errors during re-build using diff host with same ip address:
+# ssh-keygen -f "/home/cisco/.ssh/known_hosts" -R 192.168.1.53
+# if you use the dhcp ip to push the first few playbooks, don't forget to create add a new host file 
+##############################################################
+# this playbook needs to be run with --ask-sudo-pass -k 
+##############################################################
+
+- name: one-time server build
+  hosts: networknode
+  gather_facts: no
+  remote_user: lab
+  sudo: yes
+
+  tasks:
+
+  - name: create ssh dir 
+    file: path=/root/.ssh state=directory mode=700
+
+  - name: copy auth keys   
+    copy: src=/home/cisco/.ssh/id_rsa.pub dest=/root/.ssh/authorized_keys
+
+  - name: permissions for authorized_keys
+    file: path=/root/.ssh/authorized_keys owner=root group=root
+
+  - name: restart ssh
+    service: name=ssh state=restarted  
+
+##########playbook series##########
+

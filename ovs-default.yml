@@ -1,0 +1,38 @@
+---
+
+- name: default ovs install  
+  hosts: openstack_nodes
+  gather_facts: no
+  remote_user: root
+
+  tasks:
+
+  - name: create nsx folder
+    file: path=/root/nsx state=directory
+
+  - name: install dkms
+    apt: name=dkms state=present
+
+  #- name: ovs pre-reqs for nicira ovs hyp nicira-ovs-*
+  #  apt: name={{ item }} state=absent
+  #  with_items:
+  #    - openvswitch-common
+  #    - openvswitch-switch
+
+  - name: copy and untar nsx ovs 
+    unarchive: src=/home/cisco/nsx/nsx-ovs-2.1.0-build34867-ubuntu_precise_amd64.tar.gz dest=/root/nsx/ copy=yes
+
+  - name: install nsx ovs 
+    command: dpkg -i /root/nsx/{{ item }}
+    with_items:
+      - openvswitch-common_2.1.0.34867_amd64.deb
+      - openvswitch-datapath-dkms_2.1.0.34867_all.deb
+      - openvswitch-switch_2.1.0.34867_amd64.deb
+      - tcpdump-ovs_4.4.0.ovs2.1.0.34867_amd64.deb
+      - nicira-ovs-hypervisor-node_2.1.0.34867_all.deb
+
+  # need to try this for installing the .deb's
+  #- name: install deb files after untar'ing 
+  #  apt: deb=/root/nsx/*.deb #### requires ansible 1.6
+
+
